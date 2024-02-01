@@ -1,0 +1,11 @@
+pymupdf
+openai
+instructor
+ipykernel
+tiktoken
+pandas
+python-dotenv
+cohere
+numpy
+fastapi
+uvicorn
