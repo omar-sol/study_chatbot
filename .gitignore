@@ -164,3 +164,8 @@ cython_debug/
 *.npy
 *.pdf
 *.jsonl
+
+node_modules/
+secure-config-store/student-chat-bot-firebase-adminsdk.json
+
+data/*

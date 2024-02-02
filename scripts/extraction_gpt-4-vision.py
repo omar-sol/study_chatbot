@@ -43,7 +43,7 @@ def extract_tags_function_call(base64_image: str, model: str, max_retries: int =
                     "content": [
                         {
                             "type": "text",
-                            "text": "Quelle est l'information présenté dans la diapositive? Finit avec un petit résumé de l'information.",
+                            "text": "What are the informations in this image? finish with a short resume.",
                         },
                         {
                             "type": "image_url",

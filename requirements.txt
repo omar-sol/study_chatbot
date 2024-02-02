@@ -9,3 +9,7 @@ cohere
 numpy
 fastapi
 uvicorn
+PyPDF2
+firebase-admin
+python-multipart
+requests 
