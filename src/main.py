@@ -12,7 +12,8 @@ from fastapi import FastAPI, UploadFile, File, Header, HTTPException, Security, 
 from fastapi.responses import Response, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-# import get_current_user from firebase.py
+from elasticsearch import Elasticsearch
+
 from src.myfirebase import get_current_user
 from src.pdf_to_imgs import convert_pdf_to_images
 from src.extraction_gpt4_vision import img_to_text
@@ -23,6 +24,7 @@ load_dotenv()
 api_key: str | None = os.getenv("COHERE_API_KEY")
 
 app = FastAPI()
+es = Elasticsearch(["http://localhost:9200"])
 
 origins = ["*"]
 app.add_middleware(
@@ -86,6 +88,7 @@ def create_dirs(email: str, filename: str) -> str:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Create a directory to store the embedings
+    # TODO Store embedings in a database
     embedings_path = "data/" + email + "/" + name + "/embedings/"
     embedings_dir = Path(embedings_path)
     embedings_dir.mkdir(parents=True, exist_ok=True)
@@ -134,6 +137,15 @@ def retrieve_chunks_endpoint(request: AnswerRequest) -> Response:
         retrieve_chunks(request.user_input, request.sigle_cours),
         media_type="application/json",
     )
+
+
+@app.post("/search")
+async def search(query_vector: list, tags: list):
+    response = es.search(index="my_vectors", body={
+        # Your search query here
+    })
+    return {"hits": response["hits"]["hits"]}
+
 
 
 
