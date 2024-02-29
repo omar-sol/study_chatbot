@@ -1,3 +1,5 @@
+modal
+pydantic>=2.6
 pymupdf
 openai
 instructor

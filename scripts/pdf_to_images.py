@@ -1,8 +1,8 @@
 import fitz  # PyMuPDF
 import os
-import argparse
 
-def convert_pdf_to_images(pdf_path, output_folder, dpi=300):
+
+def convert_pdf_to_images(pdf_path, output_folder, pdf_name):
     # Open the PDF file
     doc = fitz.open(pdf_path)
 
@@ -10,15 +10,11 @@ def convert_pdf_to_images(pdf_path, output_folder, dpi=300):
         # Get the page
         page = doc.load_page(page_num)
 
-        # Set zoom factor based on desired DPI
-        zoom = dpi / 72  # Default DPI in PDF is 72
-        matrix = fitz.Matrix(zoom, zoom)
-
-        # Render page to an image (pixmap) with the zoom matrix
-        pix = page.get_pixmap(matrix=matrix)
+        # Render page to an image (pixmap)
+        pix = page.get_pixmap()
 
         # Define the output filename
-        image_filename = f"{output_folder}/page_{page_num + 1}.png"
+        image_filename = f"{output_folder}/{pdf_name}/page_{page_num + 1}.png"
 
         # Save the image
         pix.save(image_filename)
@@ -28,27 +24,23 @@ def convert_pdf_to_images(pdf_path, output_folder, dpi=300):
     # Close the document
     doc.close()
 
-def main(): 
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--path_to_pdf",
-        type=str,
-        required=True,
-    )
-    parser.add_argument(
-        "--path_to_img",
-        type=str,
-        required=True,
-    )
-        
-    args = parser.parse_args()
-    path_to_pdf = args.path_to_pdf
-    path_to_images = args.path_to_img
-    
-    if not os.path.exists(path_to_images):
-        os.makedirs(path_to_images)
 
-    convert_pdf_to_images(path_to_pdf, path_to_images)
+# Main script
+input_folder_path = "data/GES811"  # Folder containing PDF files
+output_folder_path = "data/GES811"  # Base folder to store output images
 
-if __name__ == "__main__":
-    main()
+if not os.path.exists(output_folder_path):
+    os.makedirs(output_folder_path)
+
+for file in os.listdir(input_folder_path):
+    if file.endswith(".pdf"):
+        pdf_path = os.path.join(input_folder_path, file)
+        pdf_name = os.path.splitext(file)[0].replace(
+            " ", "_"
+        )  # Replace spaces with underscores
+        pdf_output_folder = os.path.join(output_folder_path, pdf_name)
+
+        if not os.path.exists(pdf_output_folder):
+            os.makedirs(pdf_output_folder)
+
+        convert_pdf_to_images(pdf_path, output_folder_path, pdf_name)

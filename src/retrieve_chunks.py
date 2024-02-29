@@ -1,7 +1,7 @@
 import json
 import logging
-import json
 import os
+
 import numpy as np
 from pydantic import BaseModel, Field
 from fastapi import FastAPI
@@ -9,7 +9,6 @@ from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 import cohere
 from dotenv import load_dotenv
-import cohere
 
 load_dotenv()
 api_key: str | None = os.getenv("COHERE_API_KEY")
