@@ -128,8 +128,22 @@ Tag the image
 docker tag school_chunks gcr.io/PROJECT_ID/school_chunks:latest
 ```
 
+```bash
+docker tag chunks_811 us-east4-docker.pkg.dev/fleet-volt-304717/docker-images/chunks_811:latest
+```
+
+docker tag [SOURCE_IMAGE] [LOCATION]-docker.pkg.dev/[PROJECT-ID]/[REPOSITORY_NAME]/[IMAGE]:[TAG]
+
+
+
 Push to Google Container Registry
 
 ```bash
 docker push gcr.io/PROJECT_ID/school_chunks:latest
 ```
+
+gcloud auth configure-docker us-east4-docker.pkg.dev                                 
+
+docker push us-east4-docker.pkg.dev/fleet-volt-304717/docker-images/chunks_811:latest
+
+docker push [LOCATION]-docker.pkg.dev/[PROJECT-ID]/[REPOSITORY_NAME]/[IMAGE]:[TAG]

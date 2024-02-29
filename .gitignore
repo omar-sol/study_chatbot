@@ -168,5 +168,4 @@ cython_debug/
 node_modules/
 package*
 secure-config-store/student-chat-bot-firebase-adminsdk.json
-data/*
 

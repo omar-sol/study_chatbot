@@ -28,22 +28,23 @@ def encode_image(image_path):
 
 
 def extract_tags_function_call(base64_image: str, model: str, max_retries: int = 0):
+    # client = instructor.patch(OpenAI(), mode=instructor.function_calls.Mode.JSON_SCHEMA)
     client = instructor.patch(OpenAI())
     try:
         extracted_details = client.chat.completions.create(
             model=model,
-            # response_model=pm.ImageModel,
+            # response_model=ExtractionModel,
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a world class extractor of information from images and figures created for students. You only extract information, so avoid chat like answers.",
+                    "content": "You are a world class extractor of information from images and figures created for students. You only extract the information, so avoid chat like answers. Write in french.",
                 },
                 {
                     "role": "user",
                     "content": [
                         {
                             "type": "text",
-                            "text": "What are the informations in this image? finish with a short resume.",
+                            "text": "Quelle est l'information présenté dans la diapositive? Écrit un résumé de l'information.",
                         },
                         {
                             "type": "image_url",
@@ -55,7 +56,7 @@ def extract_tags_function_call(base64_image: str, model: str, max_retries: int =
                 },
             ],
             max_retries=max_retries,
-            max_tokens=1000,
+            max_tokens=2000,
         )
         return extracted_details
 
@@ -71,6 +72,10 @@ def main():
         "--path_to_folder",
         type=str,
         required=True,
+        help="Path to folder containing images",
+    )
+    parser.add_argument(
+        "--output_path", type=str, required=True, help="Path to output JSONL file"
     )
     parser.add_argument(
         "--max_retries",
@@ -81,6 +86,7 @@ def main():
 
     args = parser.parse_args()
     folder_path = args.path_to_folder
+    output_path = args.output_path
 
     image_files = [
         file
@@ -107,8 +113,7 @@ def main():
                 "slide_number": file,
                 "content": extracted_details.choices[0].message.content,
             }
-            save_to_jsonl(dict, "output.jsonl")
-            # break
+            save_to_jsonl(dict, output_path)
 
 
 if __name__ == "__main__":
