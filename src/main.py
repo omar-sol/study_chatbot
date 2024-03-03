@@ -35,20 +35,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/hello-world/")
 async def hellow_world(current_user: Optional[dict] = Depends(get_current_user)):
     print("current user auth", not not current_user)
     if current_user:
         # If authenticated, use the user's name from the decoded token
-        user_name = current_user.get("email", "World")  # Adjust key as needed based on the token's content
+        user_name = current_user.get(
+            "email", "World"
+        )  # Adjust key as needed based on the token's content
         return {"message": f"Hello {user_name}"}
     else:
         # If not authenticated, return a default message
         return {"message": "Hello World"}
 
+
 # Directory where uploaded files will be stored
 UPLOAD_DIR = Path("data/")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
 
 @app.post("/test-upload/")
 async def test_upload(file: UploadFile = File(...)):
@@ -57,33 +62,43 @@ async def test_upload(file: UploadFile = File(...)):
     print(f"Uploaded file size: {len(contents)} bytes")
     return {"filename": file.filename, "size": len(contents)}
 
+
 @app.post("/upload/")
-async def upload_file(file: UploadFile = File(...), current_user: Optional[dict] = Depends(get_current_user)):
+async def upload_file(
+    file: UploadFile = File(...),
+    current_user: Optional[dict] = Depends(get_current_user),
+):
     if current_user is None:
         raise HTTPException(status_code=401, detail="Not authenticated")
     email = current_user.get("email", uuid.uuid4())
     try:
-        
+
         await process_file(file, email)
-        return JSONResponse(status_code=200, content={"message": f"File '{file.filename}' uploaded successfully."})
+        return JSONResponse(
+            status_code=200,
+            content={"message": f"File '{file.filename}' uploaded successfully."},
+        )
     except Exception as e:
-        return JSONResponse(status_code=500, content={"message": f"An error occurred: {e}"})
+        return JSONResponse(
+            status_code=500, content={"message": f"An error occurred: {e}"}
+        )
+
 
 def create_dirs(email: str, filename: str) -> str:
     name, _ = os.path.splitext(filename)
 
     # Create a directory to store the file
-    file_path = "data/" + email + "/" + name + "/file/"  
+    file_path = "data/" + email + "/" + name + "/file/"
     file_dir = Path(file_path)
     file_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Create a directory to store the images
-    img_path = "data/" + email +  "/" + name + "/images/"  
+    img_path = "data/" + email + "/" + name + "/images/"
     images_dir = Path(img_path)
     images_dir.mkdir(parents=True, exist_ok=True)
 
     # Create a directory to store the text
-    output_path = "data/" + email +  "/" + name + "/output/" 
+    output_path = "data/" + email + "/" + name + "/output/"
     output_dir = Path(output_path)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -95,18 +110,22 @@ def create_dirs(email: str, filename: str) -> str:
 
     return (name, file_path, img_path, output_path, embedings_path)
 
-def save_file(contents : bytes, file_location: str) -> None:
+
+def save_file(contents: bytes, file_location: str) -> None:
     # Save the file
     with open(file_location, "wb+") as file_object:
         file_object.write(contents)
 
-async def process_file(file : UploadFile, email: str) : 
+
+async def process_file(file: UploadFile, email: str):
 
     # Create a directory to store the images
-    name, file_path, img_path, output_path, embedings_path = create_dirs(email, file.filename)
+    name, file_path, img_path, output_path, embedings_path = create_dirs(
+        email, file.filename
+    )
 
-    # Read content of the file 
-    if file.filename.endswith('.pdf'):
+    # Read content of the file
+    if file.filename.endswith(".pdf"):
         contents = await file.read()
     save_file(contents, file_path + file.filename)
 
@@ -115,7 +134,7 @@ async def process_file(file : UploadFile, email: str) :
 
     # extraction gpt4
     img_to_text(img_path, output_path)
-    
+
     # Embedding
     file_text_to_embed(output_path, embedings_path)
 
@@ -131,6 +150,7 @@ class AnswerRequest(BaseModel):
         examples=["INF1005A"],
     )
 
+
 @app.post("/get_chunks/")
 def retrieve_chunks_endpoint(request: AnswerRequest) -> Response:
     return Response(
@@ -141,12 +161,10 @@ def retrieve_chunks_endpoint(request: AnswerRequest) -> Response:
 
 @app.post("/search")
 async def search(query_vector: list, tags: list):
-    response = es.search(index="my_vectors", body={
-        # Your search query here
-    })
+    response = es.search(
+        index="my_vectors",
+        body={
+            # Your search query here
+        },
+    )
     return {"hits": response["hits"]["hits"]}
-
-
-
-
-
