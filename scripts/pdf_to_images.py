@@ -2,7 +2,7 @@ import fitz  # PyMuPDF
 import os
 
 
-def convert_pdf_to_images(pdf_path, output_folder, pdf_name):
+def convert_pdf_to_images(pdf_path, output_folder, pdf_name, dpi=72):
     # Open the PDF file
     doc = fitz.open(pdf_path)
 
@@ -10,8 +10,8 @@ def convert_pdf_to_images(pdf_path, output_folder, pdf_name):
         # Get the page
         page = doc.load_page(page_num)
 
-        # Render page to an image (pixmap)
-        pix = page.get_pixmap()
+        # Render page to an image (pixmap) with specified dpi
+        pix = page.get_pixmap(dpi=dpi)
 
         # Define the output filename
         image_filename = f"{output_folder}/{pdf_name}/page_{page_num + 1}.png"
@@ -43,4 +43,6 @@ for file in os.listdir(input_folder_path):
         if not os.path.exists(pdf_output_folder):
             os.makedirs(pdf_output_folder)
 
-        convert_pdf_to_images(pdf_path, output_folder_path, pdf_name)
+        # Here you can adjust the dpi to control the size of your output images.
+        # Lower dpi will result in smaller images.
+        convert_pdf_to_images(pdf_path, output_folder_path, pdf_name, dpi=72)
