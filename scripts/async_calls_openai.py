@@ -356,7 +356,7 @@ class APIRequest:
                 ],
                 max_retries=5,  # Only for ValidationError or JSONDecodeError exceptions
                 max_tokens=2000,
-            )
+            )  # type: ignore
 
         except openai.BadRequestError as e:
             error = e
@@ -480,27 +480,34 @@ def encode_image(image_path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    # parser.add_argument("--requests_filepath", required=True)
-    # parser.add_argument("--save_filepath", required=True)
 
+    parser.add_argument(
+        "--requests_filepath",
+        required=True,
+        help="Path to the folder containing request files e.g 'data/GES800'",
+    )
+    parser.add_argument(
+        "--save_filepath",
+        required=True,
+        help="Path where the output file will be saved e.g 'data/GES800/embeds/summaries_GES800.jsonl'",
+    )
     parser.add_argument("--model", default="gpt-4-vision-preview")
     parser.add_argument("--max_requests_per_minute", type=int, default=120 * 0.95)
     parser.add_argument("--max_tokens_per_minute", type=int, default=40_000 * 0.95)
-
     parser.add_argument("--max_attempts", type=int, default=5)
     parser.add_argument("--logging_level", default=logging.INFO)
 
     args = parser.parse_args()
 
-    main_folder = "data/GES800"
-    exclude_folder = "data/GES800/embeds"
+    main_folder = args.requests_filepath
+    exclude_folder = os.path.join(main_folder, "embeds")  # Is not a dir with images
     list_folders = [
         os.path.join(main_folder, d)
         for d in os.listdir(main_folder)
         if os.path.isdir(os.path.join(main_folder, d))
         and os.path.join(main_folder, d) != exclude_folder
     ]
-    output_file_path = "data/GES800/embeds/summaries_GES800.jsonl"
+    output_file_path = args.save_filepath
 
     for folder in list_folders:
         print(f"Processing {folder}")
