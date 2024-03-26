@@ -3,9 +3,10 @@ from modal import asgi_app, Image, Stub, Secret, Mount
 stub = Stub("chunks-GES800")
 
 image = (
-    Image.debian_slim()
+    Image.debian_slim(force_build=True)
     .apt_install("git")
     .pip_install(
+        "-U",
         "pydantic>=2.6",
         "fastapi",
         "uvicorn",
@@ -18,7 +19,7 @@ image = (
 
 @stub.function(
     image=image,
-    secrets=[Secret.from_name("my-custom-secret")],
+    secrets=[Secret.from_name("my-personal-secrets")],
     mounts=[
         Mount.from_local_dir("data/GES800/embeds", remote_path="/embeds"),
         Mount.from_local_python_packages("get_chunks_api"),
