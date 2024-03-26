@@ -146,7 +146,7 @@ async def process_api_requests(
     file_unfinished = True  # refers to whether DataFrame rows are all processed
     logging.debug(f"Initialization complete.")
 
-    if os.path.isdir(requests_filepath):  # gpt-4-vision-preview
+    if os.path.isdir(requests_filepath):
         image_files = [
             os.path.join(requests_filepath, file)
             for file in os.listdir(requests_filepath)
@@ -492,28 +492,18 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    main_folder = "data/GES800"
+    exclude_folder = "data/GES800/embeds"
     list_folders = [
-        "data/GES800/M01_Présentation_du_cours",
-        "data/GES800/M02_Bureau_de_projet_Maturité",
-        "data/GES800/M03_Stratégie_approches_et_cycles",
-        "data/GES800/P01_PMI_Introduction",
-        "data/GES800/P02_PMI_Environnement_du_projet",
-        "data/GES800/P03_PMI_Chef_de_projet",
-        "data/GES800/P04_PMI_Intégration",
-        "data/GES800/P05_PMI_Périmètre",
-        "data/GES800/P06_PMI_Échéancier",
+        os.path.join(main_folder, d)
+        for d in os.listdir(main_folder)
+        if os.path.isdir(os.path.join(main_folder, d))
+        and os.path.join(main_folder, d) != exclude_folder
     ]
-    output_file_path = "summaries_GES800.jsonl"
-
-    # list_folders = [
-    #     "data/GES811/Module_1",
-    #     "data/GES811/Module_2",
-    #     "data/GES811/Module_3",
-    #     "data/GES811/Module_5",
-    # ]
-    # output_file_path = "summaries_GES811.jsonl"
+    output_file_path = "data/GES800/embeds/summaries_GES800.jsonl"
 
     for folder in list_folders:
+        print(f"Processing {folder}")
         asyncio.run(
             process_api_requests(
                 requests_filepath=folder,
