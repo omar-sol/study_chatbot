@@ -11,7 +11,7 @@ def convert_pdf_to_images(pdf_path, output_folder, pdf_name, dpi=72):
         page = doc.load_page(page_num)
 
         # Render page to an image (pixmap) with specified dpi
-        pix = page.get_pixmap(dpi=dpi)
+        pix = page.get_pixmap(dpi=dpi)  # type: ignore
 
         # Define the output filename
         image_filename = f"{output_folder}/{pdf_name}/page_{page_num + 1}.png"
@@ -25,24 +25,13 @@ def convert_pdf_to_images(pdf_path, output_folder, pdf_name, dpi=72):
     doc.close()
 
 
-# Main script
-input_folder_path = "data/GES811"  # Folder containing PDF files
-output_folder_path = "data/GES811"  # Base folder to store output images
+INPUT_FOLDER_PATH = "data/GES800"  # Folder containing PDF files
 
-if not os.path.exists(output_folder_path):
-    os.makedirs(output_folder_path)
+for file in filter(lambda f: f.endswith(".pdf"), os.listdir(INPUT_FOLDER_PATH)):
+    pdf_path = os.path.join(INPUT_FOLDER_PATH, file)
+    pdf_name = os.path.splitext(file)[0].replace(" ", "_")
+    pdf_output_folder = os.path.join(INPUT_FOLDER_PATH, pdf_name)
 
-for file in os.listdir(input_folder_path):
-    if file.endswith(".pdf"):
-        pdf_path = os.path.join(input_folder_path, file)
-        pdf_name = os.path.splitext(file)[0].replace(
-            " ", "_"
-        )  # Replace spaces with underscores
-        pdf_output_folder = os.path.join(output_folder_path, pdf_name)
-
-        if not os.path.exists(pdf_output_folder):
-            os.makedirs(pdf_output_folder)
-
-        # Here you can adjust the dpi to control the size of your output images.
-        # Lower dpi will result in smaller images.
-        convert_pdf_to_images(pdf_path, output_folder_path, pdf_name, dpi=72)
+    if not os.path.exists(pdf_output_folder):
+        os.makedirs(pdf_output_folder)
+        convert_pdf_to_images(pdf_path, INPUT_FOLDER_PATH, pdf_name, dpi=72)
