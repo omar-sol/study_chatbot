@@ -13,8 +13,8 @@ from dotenv import load_dotenv
 load_dotenv()
 api_key: str | None = os.getenv("COHERE_API_KEY")
 
-EMBEDS_DATASET = np.load("/embeds/embeddings_GES800.npy")
-CHUNKS_FILE_PATH = "/embeds/summaries_GES800.jsonl"
+EMBEDS_DATASET = np.load("/embeds/embeddings_GES824.npy")
+CHUNKS_FILE_PATH = "/embeds/summaries_GES824.jsonl"
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
