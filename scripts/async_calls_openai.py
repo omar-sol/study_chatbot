@@ -395,7 +395,7 @@ class APIRequest:
         else:
             # response_dict = response.model_dump()
             # self.row_info_dict["extracted_info"] = response_dict
-            self.row_info_dict["content"] = response.choices[0].message.content
+            self.row_info_dict["content"] = response.choices[0].message.content  # type: ignore
 
             append_to_jsonl(self.row_info_dict, save_filepath)
             status_tracker.num_tasks_in_progress -= 1
