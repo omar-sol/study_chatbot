@@ -514,6 +514,9 @@ if __name__ == "__main__":
     ]
     output_file_path = args.save_filepath
 
+    if not os.path.exists(os.path.join(main_folder, "embeds")):
+        os.makedirs(os.path.join(main_folder, "embeds"))
+
     for folder in list_folders:
         print(f"Processing {folder}")
         asyncio.run(
