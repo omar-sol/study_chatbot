@@ -500,12 +500,17 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main_folder = args.requests_filepath
-    exclude_folder = os.path.join(main_folder, "embeds")  # Is not a dir with images
+    exclude_folders = [
+        os.path.join(main_folder, "embeds"),
+        os.path.join(main_folder, "videos"),
+        os.path.join(main_folder, "audios"),
+        os.path.join(main_folder, "transcripts"),
+    ]
     list_folders = [
         os.path.join(main_folder, d)
         for d in os.listdir(main_folder)
         if os.path.isdir(os.path.join(main_folder, d))
-        and os.path.join(main_folder, d) != exclude_folder
+        and os.path.join(main_folder, d) not in exclude_folders
     ]
     output_file_path = args.save_filepath
 
