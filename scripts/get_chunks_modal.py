@@ -3,7 +3,7 @@ from modal import asgi_app, Image, Stub, Secret, Mount
 stub = Stub("chunks-GES824")
 
 image = (
-    Image.debian_slim(force_build=True)
+    Image.debian_slim(force_build=False)
     .apt_install("git")
     .pip_install(
         "-U",

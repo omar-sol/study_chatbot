@@ -13,8 +13,12 @@ from dotenv import load_dotenv
 load_dotenv()
 api_key: str | None = os.getenv("COHERE_API_KEY")
 
-EMBEDS_DATASET = np.load("/embeds/embeddings_GES824.npy")
-CHUNKS_FILE_PATH = "/embeds/summaries_GES824.jsonl"
+PDF_EMBEDS_DATASET = np.load("/embeds/embeddings_GES824.npy")
+PDF_CONTENTS_FILE_PATH = "/embeds/summaries_GES824.jsonl"
+
+# ONLY FOR AUDIO
+AUDIO_CONTENTS_FILE_PATH = "/embeds/summaries_audio_GES824.jsonl"
+AUDIO_EMBEDS_DATASET = np.load("/embeds/embeddings_audio_GES824.npy")
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -39,7 +43,8 @@ def load_jsonl(file_path):
     return data
 
 
-contents = load_jsonl(CHUNKS_FILE_PATH)
+contents = load_jsonl(PDF_CONTENTS_FILE_PATH)
+audio_contents = load_jsonl(AUDIO_CONTENTS_FILE_PATH)
 
 
 def cosine_similarity_matrix(vectors, query_vec):
@@ -78,20 +83,50 @@ async def retrieve_chunks(user_input: str = ""):
     query_array = np.array(query_embed.embeddings)
     query_array = query_array.reshape(-1)
 
-    similarity_results = np.zeros((EMBEDS_DATASET.shape[0],), dtype=np.float32)
+    # ONLY FOR PDF
+    similarity_results_pdf = np.zeros((PDF_EMBEDS_DATASET.shape[0],), dtype=np.float32)
     try:
-        similarity_results = cosine_similarity_matrix(EMBEDS_DATASET, query_array)
+        similarity_results_pdf = cosine_similarity_matrix(
+            PDF_EMBEDS_DATASET, query_array
+        )
     except ValueError as e:
         logger.error(e)
         print(e)
 
-    sorted_indices = np.argsort(similarity_results)[::-1]
-    relevant_contents: list = [contents[i] for i in sorted_indices[:5]]
+    sorted_indices_pdf = np.argsort(similarity_results_pdf)[::-1]
+    relevant_contents_pdf: list = [contents[i] for i in sorted_indices_pdf[:5]]
 
-    for d in relevant_contents:
+    for d in relevant_contents_pdf:
         d.pop("image_path", None)
 
-    return json.dumps(relevant_contents, ensure_ascii=False)
+    # return json.dumps(relevant_contents_pdf, ensure_ascii=False)
+
+    # ONLY FOR AUDIO
+    similarity_results_audio = np.zeros(
+        (AUDIO_EMBEDS_DATASET.shape[0],), dtype=np.float32
+    )
+    try:
+        similarity_results_audio = cosine_similarity_matrix(
+            AUDIO_EMBEDS_DATASET, query_array
+        )
+    except ValueError as e:
+        logger.error(e)
+        print(e)
+
+    sorted_indices_audio = np.argsort(similarity_results_audio)[::-1]
+    relevant_contents_audio: list = [
+        audio_contents[i] for i in sorted_indices_audio[:5]
+    ]
+
+    # Combine PDF and Audio results into one JSON object
+    combined_results = {
+        "notes_pdf": relevant_contents_pdf,
+        "audio_transcripts": relevant_contents_audio,
+    }
+
+    combined_json = json.dumps(combined_results, ensure_ascii=False)
+
+    return combined_json
 
 
 class AnswerRequest(BaseModel):

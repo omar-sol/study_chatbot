@@ -206,8 +206,8 @@ def main():
 
 
 # modal volume ls transcribe_volume /
-# modal volume put transcribe_volume data/GES824/audios /
 # modal volume get transcribe_volume cours_2-1_transcription.json
+# modal volume put transcribe_volume data/GES824/audios /
 
 # With whisper v3 - large, and CPU
 # transcribed audio file of 1:23:37 in 7m20s
