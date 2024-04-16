@@ -19,7 +19,7 @@ Example command to call script:
 python examples/api_request_parallel_processor.py \
   --requests_filepath examples/data/example_requests_to_parallel_process.jsonl \
   --save_filepath examples/data/example_requests_to_parallel_process_results.jsonl \
-  --model gpt-3.5-turbo-1106 \
+  --model gpt-3.5-turbo \
   --max_requests_per_minute 10_000 \
   --max_tokens_per_minute 1_000_000 \
   --max_attempts 5 \
@@ -126,7 +126,9 @@ async def process_api_requests(
         logging.info(f"{arg}: {getattr(args, arg)}")
 
     logging.info(f"OPENAI_API_KEY: {OPENAI_API_KEY}")
-    client = instructor.patch(AsyncOpenAI(api_key=OPENAI_API_KEY, max_retries=5))
+    client = instructor.patch(
+        AsyncOpenAI(api_key=OPENAI_API_KEY, max_retries=max_attempts)
+    )
 
     # initialize trackers
     queue_of_requests_to_retry = asyncio.Queue()
@@ -159,9 +161,7 @@ async def process_api_requests(
     else:
         # # initialize file reading
         # we create a dataframe from the json file, to clean the data
-        df1 = pd.read_json("data/formatted_jobs_feb5_24.json")
-        df1["created_at"] = df1["created_at"].astype(str)
-        df1 = df1.dropna(subset="cleaned_description")
+        df1 = pd.read_json("data/file.json")
 
     logging.debug("File read and dataframe created.")
 
@@ -177,7 +177,6 @@ async def process_api_requests(
                     try:
                         row_info_dict = df1.iloc[row_index].to_dict()
                         # Check if request has already been processed, with a unique set() of KEYS
-                        # current_request_url = row_info_dict["jobs_towardsai_url"]
                         current_request_url = row_info_dict["image_path"]
                         if current_request_url in processed_requests:
                             row_index += 1
@@ -189,9 +188,6 @@ async def process_api_requests(
                             token_consumption=num_tokens_consumed_from_request(
                                 row_info_dict["image_path"]
                             ),
-                            # token_consumption=num_tokens_consumed_from_request(
-                            #     row_info_dict["cleaned_description"]
-                            # ),
                             attempts_left=max_attempts,
                             model=model,
                         )
@@ -224,9 +220,6 @@ async def process_api_requests(
         # if enough capacity available, call API
         if next_request:
             next_request_tokens = next_request.token_consumption
-            # logging.debug(
-            #     f"Request {next_request.task_id} requires {next_request_tokens} tokens"
-            # )
             if (
                 available_request_capacity >= 1
                 and available_token_capacity >= next_request_tokens
@@ -265,7 +258,6 @@ async def process_api_requests(
             await asyncio.sleep(remaining_seconds_to_pause)
             # ^e.g., if pause is 15 seconds and final limit was hit 5 seconds ago
             logging.warning(
-                # f"Pausing to cool down until {time.ctime(status_tracker.time_of_last_rate_limit_error + seconds_to_pause_after_rate_limit_error)}"
                 f"Pausing to cool down: {remaining_seconds_to_pause} seconds"
             )
 
@@ -327,8 +319,6 @@ class APIRequest:
         self.row_info_dict["module"] = module
         self.row_info_dict["page"] = page
 
-        # query = f"Job title:\n {self.row_info_dict['title']}\n Job posting:\n {self.row_info_dict['cleaned_description']}"
-
         try:
             response = await client.chat.completions.create(
                 model=self.model,
@@ -387,14 +377,11 @@ class APIRequest:
                     f"Request {self.task_id} failed after all attempts. Saving errors: {self.result}"
                 )
                 self.row_info_dict["content"] = [str(e) for e in self.result]
-                # self.row_info_dict["extracted_info"] = [str(e) for e in self.result]
 
                 append_to_jsonl(self.row_info_dict, save_filepath)
                 status_tracker.num_tasks_in_progress -= 1
                 status_tracker.num_tasks_failed += 1
         else:
-            # response_dict = response.model_dump()
-            # self.row_info_dict["extracted_info"] = response_dict
             self.row_info_dict["content"] = response.choices[0].message.content  # type: ignore
 
             append_to_jsonl(self.row_info_dict, save_filepath)
@@ -416,7 +403,7 @@ def num_tokens_consumed_from_request(
 
     base64_image = encode_image(input_text)
 
-    encoding = tiktoken.encoding_for_model("gpt-3.5-turbo-0125")
+    encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
     messages = [
         {
             "role": "system",
@@ -465,9 +452,6 @@ def read_existing_results(filepath):
         for line in file:
             data = json.loads(line)
             request_url = data["image_path"]  # Adjust to match your data structure
-            # request_url = data[
-            #     "jobs_towardsai_url"
-            # ]  # Adjust to match your data structure
             processed_requests.add(request_url)
 
     return processed_requests
@@ -484,16 +468,16 @@ if __name__ == "__main__":
     parser.add_argument(
         "--requests_filepath",
         required=True,
-        help="Path to the folder containing request files e.g 'data/GES800'",
+        help="Path to the folder containing request files e.g 'data/ATS900'",
     )
     parser.add_argument(
         "--save_filepath",
         required=True,
-        help="Path where the output file will be saved e.g 'data/GES800/embeds/summaries_GES800.jsonl'",
+        help="Path where the output file will be saved e.g 'data/ATS900/embeds/summaries_ATS900.jsonl'",
     )
-    parser.add_argument("--model", default="gpt-4-vision-preview")
-    parser.add_argument("--max_requests_per_minute", type=int, default=120 * 0.95)
-    parser.add_argument("--max_tokens_per_minute", type=int, default=40_000 * 0.95)
+    parser.add_argument("--model", default="gpt-4-turbo-2024-04-09")
+    parser.add_argument("--max_requests_per_minute", type=int, default=5000 * 0.95)
+    parser.add_argument("--max_tokens_per_minute", type=int, default=600_000 * 0.95)
     parser.add_argument("--max_attempts", type=int, default=5)
     parser.add_argument("--logging_level", default=logging.INFO)
 
